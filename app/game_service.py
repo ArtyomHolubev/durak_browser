@@ -363,7 +363,7 @@ async def process_action(
             if is_first_card:
                 game.allow_throw_ins = False
             if game.allow_throw_ins is False and len(game.table) == 1:
-                game.status_message = f"{game.players[game.defender_index].name} должен отбиться."
+                game.status_message = f"{game.players[game.defender_index].name} отбивается."
         elif action == "play_defense":
             card = data.get("card")
             attack_index = data.get("attackIndex")
@@ -375,7 +375,7 @@ async def process_action(
             if not game.allow_throw_ins:
                 game.allow_throw_ins = True
             if all(slot["defense"] for slot in game.table):
-                game.status_message = "Атакующие решают подкидывать или пасовать."
+                game.status_message = f"{game.players[game.defender_index].name} решает подкидывать или пасовать."
         elif action == "pass_attack":
             handle_attack_pass(game, player)
         elif action == "take_cards":
