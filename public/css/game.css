@@ -1,0 +1,245 @@
+#game {
+  margin-top: 20px;
+}
+
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+  color: #111;
+}
+
+#game #deck-info {
+  margin-top: 4px;
+  font-weight: 600;
+  color: #111;
+}
+
+.deck-area {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 24px;
+  min-height: 180px;
+  padding-right: 80px;
+}
+
+.deck-stack {
+  position: relative;
+  width: 110px;
+  height: 160px;
+}
+
+.deck-stack::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #0f1a3a, #1d2d63);
+  opacity: 0.2;
+}
+
+.deck-stack .card-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  transform-origin: center;
+}
+
+.deck-stack .card-back img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: grayscale(1) brightness(0.3) contrast(1.4);
+  border-radius: 14px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.deck-count {
+  position: absolute;
+  top: -10px;
+  left: 0;
+  background: #10163a;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.trump-card-visual {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 110px;
+  height: 160px;
+  transform-origin: bottom right;
+  transform: rotate(-90deg) translateY(-30px);
+  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.5));
+}
+
+.trump-card-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+#game h2,
+#game h3,
+#game p {
+  color: #111;
+}
+
+#table {
+  margin: 20px 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 18px;
+}
+
+.slot {
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.card-token {
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-weight: 600;
+  background: white;
+  border: 1px solid #b8c9f5;
+  box-shadow: 0 6px 14px rgba(34, 67, 158, 0.15);
+}
+
+.card-token.attack {
+  border-color: #f5b0b0;
+}
+
+.card-token.defense {
+  border-color: #70d6a9;
+}
+
+#hand {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+#hand-cards {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 12px;
+  justify-content: center;
+  align-items: flex-end;
+  overflow-x: auto;
+  padding: 12px 8px 4px;
+}
+
+.hand-card {
+  width: 110px;
+  height: 160px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transform-origin: center 140px;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.hand-card.disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  filter: grayscale(0.4);
+}
+
+.hand-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.5));
+}
+
+.hand-card:not(.disabled):hover {
+  transform: translateY(-10px) scale(1.03);
+}
+
+#players-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.player-chip {
+  padding: 6px 12px;
+  border-radius: 14px;
+  background: #eef2ff;
+  font-size: 14px;
+  color: #111;
+}
+
+.player-chip.attacker {
+  border: 2px solid #f37a7a;
+}
+
+.player-chip.defender {
+  border: 2px solid #57c18a;
+}
+
+#defense-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 14, 33, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-card {
+  background: white;
+  padding: 24px;
+  border-radius: 18px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.3);
+}
+
+#defense-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+#defense-options button {
+  width: 100%;
+}
+
+.card-on-table {
+  width: 110px;
+  height: 160px;
+}
+
+.card-on-table img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.4));
+}

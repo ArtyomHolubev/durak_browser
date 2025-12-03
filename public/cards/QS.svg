@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="200" viewBox="0 0 140 200">
+  <rect x="4" y="4" width="132" height="192" rx="16" ry="16" fill="#fff" stroke="#1d2333" stroke-width="4"/>
+  <text x="16" y="32" font-family="'Segoe UI', sans-serif" font-size="26" fill="#111" font-weight="600">Q</text>
+  <text x="20" y="58" font-family="'Segoe UI', sans-serif" font-size="28" fill="#111">♠</text>
+  <g transform="rotate(180 70 100)">
+    <text x="16" y="32" font-family="'Segoe UI', sans-serif" font-size="26" fill="#111" font-weight="600">Q</text>
+    <text x="20" y="58" font-family="'Segoe UI', sans-serif" font-size="28" fill="#111">♠</text>
+  </g>
+  <text x="70" y="110" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="72" fill="#111" font-weight="600">♠</text>
+</svg>

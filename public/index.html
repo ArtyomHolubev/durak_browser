@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Подкидной дурак</title>
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/game.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <h1>Подкидной дурак</h1>
+        <p class="subtitle">
+          Создавайте приватные комнаты и играйте по приглашениям.
+        </p>
+      </header>
+      <section id="entry-section" class="flex entry-section">
+        <article class="card">
+          <h2>Создать новую игру</h2>
+          <form id="create-form">
+            <label>
+              Ваше имя
+              <input type="text" id="create-name" maxlength="20" required />
+            </label>
+            <label>
+              Количество игроков (2–6)
+              <input
+                type="number"
+                id="create-count"
+                min="2"
+                max="6"
+                value="4"
+                required
+              />
+            </label>
+            <button type="submit">Создать и получить ссылку</button>
+          </form>
+        </article>
+        <article class="card">
+          <h2>Присоединиться по приглашению</h2>
+          <form id="join-form">
+            <label>
+              Код приглашения
+              <input type="text" id="join-code" maxlength="6" required />
+            </label>
+            <label>
+              Ваше имя
+              <input type="text" id="join-name" maxlength="20" required />
+            </label>
+            <button type="submit">Войти в комнату</button>
+          </form>
+        </article>
+      </section>
+
+      <section id="waiting-screen" class="card hidden waiting-card">
+        <h2>Добро пожаловать!</h2>
+        <p class="subtitle">
+          Дождитесь, пока вас впустят в игру. Страница обновится автоматически.
+        </p>
+        <button id="waiting-exit" class="secondary">
+          Создать свою игру
+        </button>
+      </section>
+
+      <section id="lobby" class="card hidden">
+        <div class="lobby-header">
+          <div>
+            <h2>Комната <span id="room-code"></span></h2>
+            <p id="lobby-status"></p>
+          </div>
+          <div class="invite-info">
+            <label>Ссылка для приглашения</label>
+            <input type="text" id="invite-link" readonly />
+          </div>
+        </div>
+        <ul id="players"></ul>
+        <div class="lobby-actions">
+          <button id="start-game" class="hidden">Начать игру</button>
+        </div>
+      </section>
+
+      <section id="game" class="card hidden">
+        <header class="game-header">
+          <div>
+            <h2>Игровое поле</h2>
+            <p id="game-status"></p>
+            <p id="deck-info" class="deck-info"></p>
+          </div>
+          <div class="meta">
+            <div class="deck-area">
+              <div id="deck-stack" class="deck-stack"></div>
+              <div id="trump-card-visual" class="trump-card-visual hidden"></div>
+              <div id="deck-count" class="deck-count">0</div>
+            </div>
+          </div>
+        </header>
+        <div id="table"></div>
+        <div id="players-inline"></div>
+        <section id="hand">
+          <h3>Ваши карты</h3>
+          <div id="hand-cards"></div>
+          <div class="hand-actions">
+            <button id="pass-btn" class="secondary">Пас</button>
+            <button id="take-btn" class="secondary">Беру</button>
+          </div>
+        </section>
+      </section>
+    </div>
+    <div id="toast" class="hidden"></div>
+    <div id="defense-modal" class="hidden">
+      <div class="modal-card">
+        <h3>Выберите атаку для защиты</h3>
+        <p>Картой <span id="modal-card-name"></span></p>
+        <div id="defense-options"></div>
+        <button id="close-modal" class="secondary">Отмена</button>
+      </div>
+    </div>
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>
