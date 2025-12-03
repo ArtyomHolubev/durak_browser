@@ -81,7 +81,12 @@ function renderApp() {
   }
   renderPlayers(game);
   if (elements.startButton) {
-    const canStart = Boolean(game.availableActions?.canStart);
+    const me = game.players.find((p) => p.id === state.playerId);
+    const activePlayers = game.players.filter((p) => !p.isOut);
+    const canStart =
+      game.phase === "lobby" &&
+      Boolean(me?.isHost) &&
+      activePlayers.length >= 2;
     elements.startButton.classList.toggle("hidden", !canStart);
   }
   if (game.phase === "playing" || game.phase === "ended") {
