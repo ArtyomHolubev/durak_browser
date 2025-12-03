@@ -14,6 +14,8 @@ const elements = {
   roomCodeLabel: document.getElementById("room-code"),
   lobbyStatus: document.getElementById("lobby-status"),
   inviteLinkInput: document.getElementById("invite-link"),
+  copyLinkButton: document.getElementById("copy-link"),
+  inviteInfo: document.querySelector(".invite-info"),
   startButton: document.getElementById("start-game"),
   tableEl: document.getElementById("table"),
   handContainer: document.getElementById("hand-cards"),

@@ -49,6 +49,17 @@ header {
 .waiting-card {
   text-align: center;
   padding: 40px 20px;
+  color: #111;
+}
+
+.waiting-card h2,
+.waiting-card p {
+  color: #111;
+}
+
+.lobby-header h2,
+.lobby-header p {
+  color: #111;
 }
 
 label {
@@ -126,6 +137,13 @@ button.secondary {
 
 .invite-info {
   max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.invite-info.compact {
+  display: none;
 }
 
 .lobby-header {

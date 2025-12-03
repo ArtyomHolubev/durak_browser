@@ -5,6 +5,7 @@ const state = {
   gameId: null,
   inviteMode: false,
   inviteGameId: null,
+  waitingOnly: false,
   game: null,
 };
 

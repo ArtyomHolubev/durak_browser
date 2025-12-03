@@ -1,12 +1,41 @@
 import { state } from "./state.js";
 import elements, { getCardAsset, formatCard, PLACEHOLDER_CARD } from "./dom.js";
 
+const RANK_ORDER = ["6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+const SUIT_ORDER = ["C", "D", "H", "S"];
+const RANK_INDEX = RANK_ORDER.reduce((acc, rank, idx) => {
+  acc[rank] = idx;
+  return acc;
+}, {});
+const SUIT_INDEX = SUIT_ORDER.reduce((acc, suit, idx) => {
+  acc[suit] = idx;
+  return acc;
+}, {});
+
 const CARD_RENDER_OPTIONS = { rotationStep: 4 };
 let toastTimer = null;
 let callbacks = {
   onPlayAttack: null,
   onPlayDefense: null,
 };
+
+function cardWeight(card, trumpSuit) {
+  const rankScore = RANK_INDEX[card.rank] ?? 0;
+  const suitScore = SUIT_INDEX[card.suit] ?? 0;
+  const base = rankScore + suitScore / 10;
+  if (trumpSuit && card.suit === trumpSuit) {
+    return 100 + base;
+  }
+  return base;
+}
+
+function sortHandCards(hand, trumpSuit) {
+  return [...hand].sort((a, b) => {
+    const diff = cardWeight(a, trumpSuit) - cardWeight(b, trumpSuit);
+    if (diff !== 0) return diff;
+    return (a.rank + a.suit).localeCompare(b.rank + b.suit);
+  });
+}
 
 function registerCallbacks(newCallbacks) {
   callbacks = { ...callbacks, ...newCallbacks };
@@ -24,35 +53,55 @@ function showToast(message) {
 
 function toggleEntryVisibility(joined) {
   if (!elements.entrySection) return;
+  const showWaiting = state.inviteMode || state.waitingOnly;
   if (joined) {
-    state.inviteMode = false;
-    state.inviteGameId = null;
     elements.entrySection.classList.add("hidden");
     document.body.classList.add("game-mode");
-    if (elements.waitingScreen) elements.waitingScreen.classList.add("hidden");
+    if (showWaiting) {
+      elements.waitingScreen?.classList.remove("hidden");
+      elements.inviteInfo?.classList.add("compact");
+    } else {
+      elements.waitingScreen?.classList.add("hidden");
+      elements.inviteInfo?.classList.remove("compact");
+    }
   } else {
     document.body.classList.remove("game-mode");
-    if (!state.inviteMode) {
+    if (showWaiting) {
+      elements.entrySection.classList.add("hidden");
+      elements.waitingScreen?.classList.remove("hidden");
+      elements.inviteInfo?.classList.add("compact");
+    } else {
       elements.entrySection.classList.remove("hidden");
-    }
-    if (elements.waitingScreen) {
-      elements.waitingScreen.classList.toggle("hidden", !state.inviteMode);
+      elements.waitingScreen?.classList.add("hidden");
+      elements.inviteInfo?.classList.remove("compact");
     }
   }
 }
 
 function activateInviteMode(gameId) {
   state.inviteMode = true;
+  state.waitingOnly = true;
   state.inviteGameId = gameId;
   elements.entrySection?.classList.add("hidden");
   elements.waitingScreen?.classList.remove("hidden");
+  elements.inviteInfo?.classList.add("compact");
 }
 
 function deactivateInviteMode() {
   state.inviteMode = false;
+  state.waitingOnly = false;
   state.inviteGameId = null;
   elements.waitingScreen?.classList.add("hidden");
   elements.entrySection?.classList.remove("hidden");
+  elements.inviteInfo?.classList.remove("compact");
+}
+
+function exitWaitingState() {
+  state.inviteMode = false;
+  state.waitingOnly = false;
+  state.inviteGameId = null;
+  elements.waitingScreen?.classList.add("hidden");
+  elements.inviteInfo?.classList.remove("compact");
 }
 
 function requestInviteName() {
@@ -71,6 +120,10 @@ function renderApp() {
   if (!state.game) return;
   toggleEntryVisibility(Boolean(state.playerId));
   const { game } = state;
+  if (state.waitingOnly && game.phase !== "lobby") {
+    exitWaitingState();
+    toggleEntryVisibility(Boolean(state.playerId));
+  }
   elements.lobbySection?.classList.remove("hidden");
   if (elements.roomCodeLabel) elements.roomCodeLabel.textContent = game.id;
   if (elements.lobbyStatus) {
@@ -94,6 +147,10 @@ function renderApp() {
     renderGameBoard(game);
   } else {
     elements.gameSection?.classList.add("hidden");
+    if (state.inviteMode && state.playerId) {
+      elements.lobbySection?.classList.add("hidden");
+      elements.waitingScreen?.classList.remove("hidden");
+    }
   }
 }
 
@@ -201,9 +258,10 @@ function renderHand(game) {
   const me = game.players.find((p) => p.id === state.playerId);
   elements.handContainer.innerHTML = "";
   if (!me) return;
-  const total = me.hand.length;
+  const sortedHand = sortHandCards(me.hand, game.trumpCard?.suit);
+  const total = sortedHand.length;
   const center = (total - 1) / 2;
-  me.hand.forEach((card, index) => {
+  sortedHand.forEach((card, index) => {
     const btn = document.createElement("button");
     btn.className = "hand-card";
     const angle = (index - center) * CARD_RENDER_OPTIONS.rotationStep;
@@ -292,6 +350,7 @@ function createTableCard(card) {
 export {
   activateInviteMode,
   deactivateInviteMode,
+  exitWaitingState,
   registerCallbacks,
   renderApp,
   requestInviteName,
