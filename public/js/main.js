@@ -99,6 +99,26 @@ elements.waitingExitBtn?.addEventListener("click", (event) => {
   deactivateInviteMode();
 });
 
+elements.copyLinkButton?.addEventListener("click", async () => {
+  if (!elements.inviteLinkInput?.value) return;
+  const originalText = elements.copyLinkButton.textContent;
+  const notifyCopied = () => {
+    elements.copyLinkButton.textContent = "Скопировано";
+    setTimeout(() => {
+      elements.copyLinkButton.textContent = originalText;
+    }, 1500);
+    showToast("Ссылка скопирована.");
+  };
+  try {
+    await navigator.clipboard.writeText(elements.inviteLinkInput.value);
+    notifyCopied();
+  } catch (err) {
+    elements.inviteLinkInput.select();
+    document.execCommand("copy");
+    notifyCopied();
+  }
+});
+
 function requestNameAndJoin(gameId) {
   if (!gameId) return false;
   const name = requestInviteName();
