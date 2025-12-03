@@ -140,6 +140,49 @@
   background: rgba(255, 255, 255, 0.05);
   border-radius: 18px;
   padding: 16px;
+  color: #111;
+}
+
+.hand-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.hand-actions button {
+  flex: 1;
+  font-weight: 700;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+#pass-btn {
+  background: #ffffff;
+  color: #111;
+  border: 1px solid #cdd6f6;
+}
+
+#take-btn {
+  background: #f24141;
+  color: #fff;
+  border: none;
+}
+
+#pass-btn:active:not(:disabled) {
+  background: #111;
+  color: #fff;
+}
+
+#take-btn:active:not(:disabled) {
+  background: #fff;
+  color: #f24141;
+  border: 1px solid #f24141;
+}
+
+#pass-btn:disabled,
+#take-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(0.4);
 }
 
 #hand-cards {

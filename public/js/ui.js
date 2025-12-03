@@ -307,7 +307,7 @@ function handleCardClick(card) {
 }
 
 function openDefenseModal(card) {
-  if (!elements.defenseModal || !elements.defenseOptions || !elements.modalCardName) return;
+  if (!elements.defenseModal || !elements.defenseOptions) return;
   const pending = state.game.table
     .map((slot, idx) => (slot.defense ? null : { index: idx, card: slot.attack }))
     .filter(Boolean);
@@ -315,11 +315,11 @@ function openDefenseModal(card) {
     showToast("Нечего отбивать.");
     return;
   }
-  elements.modalCardName.textContent = formatCard(card);
   elements.defenseOptions.innerHTML = "";
   pending.forEach((option) => {
     const btn = document.createElement("button");
-    btn.textContent = `Покрыть ${formatCard(option.card)}`;
+    btn.textContent = `Отбить ${formatCard(option.card)}`;
+    btn.classList.add("primary");
     btn.addEventListener("click", () => {
       if (callbacks.onPlayDefense) {
         callbacks.onPlayDefense(card, option.index);
