@@ -5,7 +5,7 @@ import {
   getStoredPlayerName,
   storePlayerName,
 } from "./state.js";
-import { showToast, renderApp, toggleEntryVisibility } from "./ui.js";
+import { showToast, renderApp, toggleEntryVisibility, resetToMenu } from "./ui.js";
 
 function normalizeName(name) {
   return name ? name.trim() : "";
@@ -50,6 +50,13 @@ function connectToGame(gameId, name) {
       renderApp();
     } else if (payload.type === "error") {
       showToast(payload.message);
+    } else if (payload.type === "return_to_menu") {
+      resetToMenu();
+      if (state.socket) {
+        state.socket.close();
+        state.socket = null;
+      }
+      showToast("Игра завершена. Создайте новую комнату или присоединяйтесь заново.");
     }
   };
   socket.onclose = () => {

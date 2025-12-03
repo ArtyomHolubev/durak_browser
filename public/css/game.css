@@ -215,12 +215,13 @@
 #hand-cards {
   display: flex;
   flex-wrap: nowrap;
-  gap: 12px;
+  gap: 0;
   justify-content: center;
   align-items: flex-end;
   overflow-x: hidden;
   padding: 24px 8px 10px;
   min-height: 190px;
+  position: relative;
 }
 
 .hand-card {
@@ -232,6 +233,8 @@
   cursor: pointer;
   transform-origin: center 140px;
   transition: transform 0.2s ease, filter 0.2s ease;
+  flex: 0 0 auto;
+  margin-left: 0;
 }
 
 .hand-card.disabled {
@@ -249,6 +252,7 @@
 
 .hand-card:not(.disabled):hover {
   transform: translateY(-10px) scale(1.03);
+  z-index: 20;
 }
 
 #players-inline {
@@ -283,6 +287,16 @@
   justify-content: center;
 }
 
+#winner-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 14, 33, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
 .modal-card {
   background: white;
   padding: 24px;
@@ -290,6 +304,26 @@
   max-width: 420px;
   width: 90%;
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.3);
+}
+
+.winner-card {
+  text-align: center;
+}
+
+.winner-card h3 {
+  margin-bottom: 8px;
+}
+
+.winner-card p {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #111;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
 }
 
 #defense-options {

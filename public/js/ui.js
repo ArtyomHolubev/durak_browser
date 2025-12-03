@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import elements, { getCardAsset, formatCard, PLACEHOLDER_CARD } from "./dom.js";
+import elements, { getCardAsset, formatCard } from "./dom.js";
 
 const RANK_ORDER = ["6", "7", "8", "9", "10", "J", "Q", "K", "A"];
 const SUIT_ORDER = ["C", "D", "H", "S"];
@@ -12,7 +12,7 @@ const SUIT_INDEX = SUIT_ORDER.reduce((acc, suit, idx) => {
   return acc;
 }, {});
 
-const CARD_RENDER_OPTIONS = { rotationStep: 4 };
+const CARD_RENDER_OPTIONS = { rotationBase: 5 };
 let toastTimer = null;
 let callbacks = {
   onPlayAttack: null,
@@ -119,6 +119,9 @@ function updateInviteLink(gameId) {
 function renderApp() {
   if (!state.game) return;
   const inLobby = state.game.phase === "lobby";
+  if (inLobby) {
+    state.waitingOnly = false;
+  }
   if (!inLobby && state.waitingOnly) {
     exitWaitingState();
   }
@@ -154,6 +157,7 @@ function renderApp() {
       elements.waitingScreen?.classList.remove("hidden");
     }
   }
+  toggleWinnerModal(game);
 }
 
 function renderPlayers(game) {
@@ -251,11 +255,13 @@ function renderHand(game) {
   const sortedHand = sortHandCards(me.hand, game.trumpCard?.suit);
   const total = sortedHand.length;
   const center = (total - 1) / 2;
+  const overlap = Math.min(80, 20 + total * 4);
   sortedHand.forEach((card, index) => {
     const btn = document.createElement("button");
     btn.className = "hand-card";
-    const angle = (index - center) * CARD_RENDER_OPTIONS.rotationStep;
+    const angle = (index - center) * CARD_RENDER_OPTIONS.rotationBase;
     btn.style.transform = `rotate(${angle}deg)`;
+    btn.style.marginLeft = index === 0 ? "0" : `-${overlap}px`;
     btn.style.zIndex = index + 1;
     const img = document.createElement("img");
     img.src = getCardAsset(card);
@@ -337,10 +343,36 @@ function createTableCard(card) {
   return wrapper;
 }
 
+function toggleWinnerModal(game) {
+  if (!elements.winnerModal || !elements.winnerMessage) return;
+  if (game.phase === "ended") {
+    const winner = game.players.find((p) => p.id === game.winnerId);
+    const name = winner ? winner.name : "все игроки";
+    elements.winnerMessage.textContent = `ПОЗДРАВЛЯЮ!! ПОБЕДИЛ ${name}`;
+    elements.winnerModal.classList.remove("hidden");
+  } else {
+    elements.winnerModal.classList.add("hidden");
+  }
+}
+
+function resetToMenu() {
+  state.game = null;
+  state.playerId = null;
+  state.inviteMode = false;
+  state.inviteGameId = null;
+  state.waitingOnly = false;
+  elements.winnerModal?.classList.add("hidden");
+  elements.lobbySection?.classList.add("hidden");
+  elements.gameSection?.classList.add("hidden");
+  elements.waitingScreen?.classList.add("hidden");
+  toggleEntryVisibility(false);
+}
+
 export {
   activateInviteMode,
   deactivateInviteMode,
   exitWaitingState,
+  resetToMenu,
   registerCallbacks,
   renderApp,
   requestInviteName,

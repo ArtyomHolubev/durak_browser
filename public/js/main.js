@@ -99,6 +99,16 @@ elements.waitingExitBtn?.addEventListener("click", (event) => {
   deactivateInviteMode();
 });
 
+elements.rematchBtn?.addEventListener("click", (event) => {
+  event.preventDefault();
+  sendAction("request_rematch");
+});
+
+elements.exitRematchBtn?.addEventListener("click", (event) => {
+  event.preventDefault();
+  sendAction("cancel_rematch");
+});
+
 elements.copyLinkButton?.addEventListener("click", async () => {
   if (!elements.inviteLinkInput?.value) return;
   const originalText = elements.copyLinkButton.textContent;
