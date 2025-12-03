@@ -118,30 +118,32 @@ function updateInviteLink(gameId) {
 
 function renderApp() {
   if (!state.game) return;
+  const inLobby = state.game.phase === "lobby";
+  if (!inLobby && state.waitingOnly) {
+    exitWaitingState();
+  }
   toggleEntryVisibility(Boolean(state.playerId));
   const { game } = state;
-  if (state.waitingOnly && game.phase !== "lobby") {
-    exitWaitingState();
-    toggleEntryVisibility(Boolean(state.playerId));
+  if (inLobby) {
+    elements.lobbySection?.classList.remove("hidden");
+    if (elements.roomCodeLabel) elements.roomCodeLabel.textContent = game.id;
+    if (elements.lobbyStatus) {
+      elements.lobbyStatus.textContent = `Ожидаем игроков: ${game.players.length}/${game.maxPlayers}`;
+    }
+    renderPlayers(game);
+    if (elements.startButton) {
+      const me = game.players.find((p) => p.id === state.playerId);
+      const activePlayers = game.players.filter((p) => !p.isOut);
+      const canStart = Boolean(me?.isHost) && activePlayers.length >= 2;
+      elements.startButton.classList.toggle("hidden", !canStart);
+    }
+  } else {
+    elements.lobbySection?.classList.add("hidden");
+    elements.entrySection?.classList.add("hidden");
+    elements.waitingScreen?.classList.add("hidden");
+    elements.inviteInfo?.classList.add("compact");
   }
-  elements.lobbySection?.classList.remove("hidden");
-  if (elements.roomCodeLabel) elements.roomCodeLabel.textContent = game.id;
-  if (elements.lobbyStatus) {
-    elements.lobbyStatus.textContent =
-      game.phase === "lobby"
-        ? `Ожидаем игроков: ${game.players.length}/${game.maxPlayers}`
-        : game.status;
-  }
-  renderPlayers(game);
-  if (elements.startButton) {
-    const me = game.players.find((p) => p.id === state.playerId);
-    const activePlayers = game.players.filter((p) => !p.isOut);
-    const canStart =
-      game.phase === "lobby" &&
-      Boolean(me?.isHost) &&
-      activePlayers.length >= 2;
-    elements.startButton.classList.toggle("hidden", !canStart);
-  }
+
   if (game.phase === "playing" || game.phase === "ended") {
     elements.gameSection?.classList.remove("hidden");
     renderGameBoard(game);
@@ -200,20 +202,6 @@ function renderDeck(game) {
   if (elements.deckStack) {
     elements.deckStack.innerHTML = "";
     elements.deckStack.classList.toggle("empty", count === 0);
-    if (count > 0) {
-      const layers = Math.min(4, Math.max(1, Math.ceil(count / 8)));
-      const cardForBack = game.trumpCard || PLACEHOLDER_CARD;
-      for (let i = 0; i < layers; i += 1) {
-        const layer = document.createElement("div");
-        layer.className = "card-back";
-        layer.style.transform = `translate(${i * 3}px, -${i * 2}px)`;
-        const img = document.createElement("img");
-        img.src = getCardAsset(cardForBack);
-        img.alt = "Колода";
-        layer.appendChild(img);
-        elements.deckStack.appendChild(layer);
-      }
-    }
   }
   if (elements.trumpCardVisual) {
     elements.trumpCardVisual.innerHTML = "";
@@ -223,8 +211,10 @@ function renderDeck(game) {
       img.alt = `Козырь ${formatCard(game.trumpCard)}`;
       elements.trumpCardVisual.classList.remove("hidden");
       elements.trumpCardVisual.appendChild(img);
+      elements.trumpLabel?.classList.remove("hidden");
     } else {
       elements.trumpCardVisual.classList.add("hidden");
+      elements.trumpLabel?.classList.add("hidden");
     }
   }
 }

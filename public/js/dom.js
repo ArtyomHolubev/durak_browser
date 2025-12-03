@@ -16,6 +16,7 @@ const elements = {
   inviteLinkInput: document.getElementById("invite-link"),
   copyLinkButton: document.getElementById("copy-link"),
   inviteInfo: document.querySelector(".invite-info"),
+  trumpLabel: document.getElementById("trump-label"),
   startButton: document.getElementById("start-game"),
   tableEl: document.getElementById("table"),
   handContainer: document.getElementById("hand-cards"),
