@@ -90,13 +90,7 @@ if (elements.waitingScreen) {
     const gameId =
       state.inviteGameId || elements.joinCodeInput.value.trim().toUpperCase();
     if (!gameId) return;
-    const name = requestInviteName();
-    if (!name) {
-      showToast("Имя обязательно для входа.");
-      return;
-    }
-    updateInviteLink(gameId);
-    connectToGame(gameId, name);
+    requestNameAndJoin(gameId);
   });
 }
 
@@ -104,6 +98,18 @@ elements.waitingExitBtn?.addEventListener("click", (event) => {
   event.stopPropagation();
   deactivateInviteMode();
 });
+
+function requestNameAndJoin(gameId) {
+  if (!gameId) return false;
+  const name = requestInviteName();
+  if (!name) {
+    showToast("Имя обязательно для входа.");
+    return false;
+  }
+  updateInviteLink(gameId);
+  connectToGame(gameId, name);
+  return true;
+}
 
 const params = new URLSearchParams(window.location.search);
 const presetCode = params.get("game");
@@ -116,7 +122,8 @@ if (presetCode) {
   if (storedName) {
     connectToGame(normalized, storedName);
   } else {
-    showToast("Дождитесь, пока вас впустят в игру.");
+    showToast("Введите имя, чтобы присоединиться.");
+    requestNameAndJoin(normalized);
   }
 }
 
