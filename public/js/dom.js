@@ -37,6 +37,7 @@ const elements = {
   winnerMessage: document.getElementById("winner-message"),
   rematchBtn: document.getElementById("rematch-btn"),
   exitRematchBtn: document.getElementById("exit-rematch-btn"),
+  animationLayer: document.getElementById("animation-layer"),
 };
 
 const SUIT_SYMBOL = {

@@ -240,29 +240,25 @@ function renderTable(table) {
   if (!elements.tableEl) return;
   elements.tableEl.innerHTML = "";
   if (!table.length) {
-    elements.tableEl.textContent = "Стол пуст.";
-    elements.tableEl.style.color = "#111";
+    const empty = document.createElement("div");
+    empty.id = "table-empty";
+    empty.textContent = "Стол пуст.";
+    elements.tableEl.appendChild(empty);
     return;
   }
-  elements.tableEl.style.color = "";
   const prevTable = state.tableSnapshot || new Set();
   const nextTable = new Set();
   table.forEach((slot, index) => {
-    const cell = document.createElement("div");
-    cell.className = "slot";
     const attackKey = `${slot.attack.rank}${slot.attack.suit}-A${index}`;
     nextTable.add(attackKey);
-    cell.appendChild(createTableCard(slot.attack, attackKey, prevTable, "attack"));
+    const attackEl = createTableCard(slot.attack, attackKey, prevTable, "attack");
+    elements.tableEl.appendChild(attackEl);
     if (slot.defense) {
       const defenseKey = `${slot.defense.rank}${slot.defense.suit}-D${index}`;
       nextTable.add(defenseKey);
-      cell.appendChild(createTableCard(slot.defense, defenseKey, prevTable, "defense"));
-    } else {
-      const label = document.createElement("small");
-      label.textContent = `Слот #${index + 1}`;
-      cell.appendChild(label);
+      const defenseEl = createTableCard(slot.defense, defenseKey, prevTable, "defense");
+      elements.tableEl.appendChild(defenseEl);
     }
-    elements.tableEl.appendChild(cell);
   });
   state.tableSnapshot = nextTable;
 }
@@ -270,6 +266,7 @@ function renderTable(table) {
 function renderHand(game) {
   if (!elements.handContainer) return;
   const me = game.players.find((p) => p.id === state.playerId);
+  const previousPositions = state.handPositions || new Map();
   elements.handContainer.innerHTML = "";
   if (!me) return;
   const sortedHand = sortHandCards(me.hand, game.trumpCard?.suit);
@@ -282,6 +279,8 @@ function renderHand(game) {
   sortedHand.forEach((card, index) => {
     const btn = document.createElement("button");
     btn.className = "hand-card";
+    const cardId = `${card.rank}${card.suit}`;
+    btn.dataset.cardId = cardId;
     const angle = (index - center) * CARD_RENDER_OPTIONS.rotationBase;
     const finalTransform = `rotate(${angle}deg)`;
     btn.style.setProperty("--final-transform", finalTransform);
@@ -292,16 +291,16 @@ function renderHand(game) {
     img.alt = formatCard(card);
     btn.appendChild(img);
     btn.addEventListener("click", () => handleCardClick(card));
-    const occur = counter[card.rank + card.suit] || 0;
-    counter[card.rank + card.suit] = occur + 1;
-    const key = `${card.rank}${card.suit}-${occur}`;
-    nextHand.add(key);
-    if (!prevHand.has(key)) {
+    nextHand.add(cardId);
+    if (!prevHand.has(cardId)) {
       btn.classList.add("new-card");
     }
     elements.handContainer.appendChild(btn);
   });
   state.handSnapshot = nextHand;
+  requestAnimationFrame(() => {
+    state.handPositions = measureHandPositions();
+  });
 }
 
 function renderPlayerBadges(game) {
@@ -367,7 +366,7 @@ function hideDefenseModal() {
 
 function createTableCard(card, key, prevTable, type = "attack") {
   const wrapper = document.createElement("div");
-  wrapper.className = "card-on-table";
+  wrapper.className = "table-card";
   wrapper.classList.add(type);
   const { angle, offsetX, offsetY } = computeCardTransform(key);
   const baseTransform = `translate(-50%, -50%) translate(${offsetX}px, ${offsetY}px) rotate(${angle}deg)`;
@@ -391,6 +390,68 @@ function computeCardTransform(key) {
   const offsetX = ((hash % 3000) / 3000) * 24 - 12;
   const offsetY = (((hash >> 3) % 2000) / 2000) * 18 - 9;
   return { angle, offsetX, offsetY };
+}
+
+function measureHandPositions() {
+  if (!elements.handContainer || !elements.gameSection) return new Map();
+  const parentRect = elements.gameSection.getBoundingClientRect();
+  const map = new Map();
+  elements.handContainer.querySelectorAll(".hand-card").forEach((el) => {
+    const cardId = el.dataset.cardId;
+    if (!cardId) return;
+    const rect = el.getBoundingClientRect();
+    const transform = window.getComputedStyle(el).transform;
+    map.set(cardId, {
+      x: rect.left - parentRect.left + rect.width / 2,
+      y: rect.top - parentRect.top + rect.height / 2,
+      width: rect.width,
+      height: rect.height,
+      transform: transform === "none" ? "rotate(0deg)" : transform,
+    });
+  });
+  return map;
+}
+
+function animateCardFromHandToTable(card, targetEl) {
+  if (!elements.animationLayer || !elements.gameSection) return;
+  const cardId = `${card.rank}${card.suit}`;
+  const start = state.handPositions?.get(cardId);
+  if (!start) return;
+  const clone = document.createElement("div");
+  clone.className = "card-on-table";
+  clone.style.position = "absolute";
+  clone.style.width = `${start.width}px`;
+  clone.style.height = `${start.height}px`;
+  clone.style.left = `${start.x - start.width / 2}px`;
+  clone.style.top = `${start.y - start.height / 2}px`;
+  clone.style.transform = start.transform;
+  clone.style.opacity = "1";
+  clone.style.zIndex = 60;
+  const img = document.createElement("img");
+  img.src = getCardAsset(card);
+  img.alt = formatCard(card);
+  clone.appendChild(img);
+  elements.animationLayer.appendChild(clone);
+  requestAnimationFrame(() => {
+    const targetRect = targetEl.getBoundingClientRect();
+    const parentRect = elements.gameSection.getBoundingClientRect();
+    const finalX = targetRect.left - parentRect.left;
+    const finalY = targetRect.top - parentRect.top;
+    const finalTransform = window.getComputedStyle(targetEl).transform;
+    clone.style.transition =
+      "left 0.45s ease, top 0.45s ease, transform 0.45s ease, opacity 0.45s ease";
+    clone.style.left = `${finalX}px`;
+    clone.style.top = `${finalY}px`;
+    clone.style.transform = finalTransform === "none" ? "rotate(0deg)" : finalTransform;
+    clone.style.opacity = "0.85";
+  });
+  clone.addEventListener(
+    "transitionend",
+    () => {
+      clone.remove();
+    },
+    { once: true }
+  );
 }
 
 function toggleWinnerModal(game) {
