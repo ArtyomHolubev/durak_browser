@@ -7,6 +7,10 @@ const state = {
   inviteGameId: null,
   waitingOnly: false,
   game: null,
+  handSnapshot: new Set(),
+  tableSnapshot: new Set(),
+  lastPhase: null,
+  handPositions: new Map(),
 };
 
 const PLAYER_KEY = (gameId) => `durak-player-${gameId}`;

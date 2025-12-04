@@ -33,6 +33,11 @@ const elements = {
   defenseOptions: document.getElementById("defense-options"),
   modalCardName: document.getElementById("modal-card-name"),
   closeModalBtn: document.getElementById("close-modal"),
+  winnerModal: document.getElementById("winner-modal"),
+  winnerMessage: document.getElementById("winner-message"),
+  rematchBtn: document.getElementById("rematch-btn"),
+  exitRematchBtn: document.getElementById("exit-rematch-btn"),
+  animationLayer: document.getElementById("animation-layer"),
 };
 
 const SUIT_SYMBOL = {
@@ -41,8 +46,6 @@ const SUIT_SYMBOL = {
   H: "♥",
   S: "♠",
 };
-
-const PLACEHOLDER_CARD = { rank: "A", suit: "S" };
 
 function formatCard(card) {
   if (!card) return "";
@@ -54,4 +57,4 @@ function getCardAsset(card) {
 }
 
 export default elements;
-export { SUIT_SYMBOL, PLACEHOLDER_CARD, formatCard, getCardAsset };
+export { SUIT_SYMBOL, formatCard, getCardAsset };

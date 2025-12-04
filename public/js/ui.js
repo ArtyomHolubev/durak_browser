@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import elements, { getCardAsset, formatCard, PLACEHOLDER_CARD } from "./dom.js";
+import elements, { getCardAsset, formatCard } from "./dom.js";
 
 const RANK_ORDER = ["6", "7", "8", "9", "10", "J", "Q", "K", "A"];
 const SUIT_ORDER = ["C", "D", "H", "S"];
@@ -12,7 +12,7 @@ const SUIT_INDEX = SUIT_ORDER.reduce((acc, suit, idx) => {
   return acc;
 }, {});
 
-const CARD_RENDER_OPTIONS = { rotationStep: 4 };
+const CARD_RENDER_OPTIONS = { rotationBase: 5 };
 let toastTimer = null;
 let callbacks = {
   onPlayAttack: null,
@@ -55,6 +55,10 @@ function toggleEntryVisibility(joined) {
   if (!elements.entrySection) return;
   const showWaiting = state.inviteMode || state.waitingOnly;
   if (joined) {
+    if (!state.waitingOnly) {
+      state.inviteMode = false;
+      state.inviteGameId = null;
+    }
     elements.entrySection.classList.add("hidden");
     document.body.classList.add("game-mode");
     if (showWaiting) {
@@ -119,23 +123,35 @@ function updateInviteLink(gameId) {
 function renderApp() {
   if (!state.game) return;
   const inLobby = state.game.phase === "lobby";
+  if (state.lastPhase !== state.game.phase) {
+    if (state.game.phase === "playing") {
+      state.handSnapshot = new Set();
+      state.tableSnapshot = new Set();
+    }
+    state.lastPhase = state.game.phase;
+  }
   if (!inLobby && state.waitingOnly) {
     exitWaitingState();
   }
   toggleEntryVisibility(Boolean(state.playerId));
   const { game } = state;
   if (inLobby) {
-    elements.lobbySection?.classList.remove("hidden");
-    if (elements.roomCodeLabel) elements.roomCodeLabel.textContent = game.id;
-    if (elements.lobbyStatus) {
-      elements.lobbyStatus.textContent = `Ожидаем игроков: ${game.players.length}/${game.maxPlayers}`;
-    }
-    renderPlayers(game);
-    if (elements.startButton) {
-      const me = game.players.find((p) => p.id === state.playerId);
-      const activePlayers = game.players.filter((p) => !p.isOut);
-      const canStart = Boolean(me?.isHost) && activePlayers.length >= 2;
-      elements.startButton.classList.toggle("hidden", !canStart);
+    if (state.inviteMode || state.waitingOnly) {
+      elements.lobbySection?.classList.add("hidden");
+      elements.waitingScreen?.classList.remove("hidden");
+    } else {
+      elements.lobbySection?.classList.remove("hidden");
+      if (elements.roomCodeLabel) elements.roomCodeLabel.textContent = game.id;
+      if (elements.lobbyStatus) {
+        elements.lobbyStatus.textContent = `Ожидаем игроков: ${game.players.length}/${game.maxPlayers}`;
+      }
+      renderPlayers(game);
+      if (elements.startButton) {
+        const me = game.players.find((p) => p.id === state.playerId);
+        const activePlayers = game.players.filter((p) => !p.isOut);
+        const canStart = Boolean(me?.isHost) && activePlayers.length >= 2;
+        elements.startButton.classList.toggle("hidden", !canStart);
+      }
     }
   } else {
     elements.lobbySection?.classList.add("hidden");
@@ -154,6 +170,7 @@ function renderApp() {
       elements.waitingScreen?.classList.remove("hidden");
     }
   }
+  toggleWinnerModal(game);
 }
 
 function renderPlayers(game) {
@@ -223,46 +240,66 @@ function renderTable(table) {
   if (!elements.tableEl) return;
   elements.tableEl.innerHTML = "";
   if (!table.length) {
-    elements.tableEl.textContent = "Стол пуст.";
-    elements.tableEl.style.color = "#111";
+    const empty = document.createElement("div");
+    empty.id = "table-empty";
+    empty.textContent = "Стол пуст.";
+    elements.tableEl.appendChild(empty);
     return;
   }
-  elements.tableEl.style.color = "";
+  const prevTable = state.tableSnapshot || new Set();
+  const nextTable = new Set();
   table.forEach((slot, index) => {
-    const cell = document.createElement("div");
-    cell.className = "slot";
-    cell.appendChild(createTableCard(slot.attack));
+    const attackKey = `${slot.attack.rank}${slot.attack.suit}-A${index}`;
+    nextTable.add(attackKey);
+    const attackEl = createTableCard(slot.attack, attackKey, prevTable, "attack");
+    elements.tableEl.appendChild(attackEl);
     if (slot.defense) {
-      cell.appendChild(createTableCard(slot.defense));
-    } else {
-      const label = document.createElement("small");
-      label.textContent = `Слот #${index + 1}`;
-      cell.appendChild(label);
+      const defenseKey = `${slot.defense.rank}${slot.defense.suit}-D${index}`;
+      nextTable.add(defenseKey);
+      const defenseEl = createTableCard(slot.defense, defenseKey, prevTable, "defense");
+      elements.tableEl.appendChild(defenseEl);
     }
-    elements.tableEl.appendChild(cell);
   });
+  state.tableSnapshot = nextTable;
 }
 
 function renderHand(game) {
   if (!elements.handContainer) return;
   const me = game.players.find((p) => p.id === state.playerId);
+  const previousPositions = state.handPositions || new Map();
   elements.handContainer.innerHTML = "";
   if (!me) return;
   const sortedHand = sortHandCards(me.hand, game.trumpCard?.suit);
   const total = sortedHand.length;
   const center = (total - 1) / 2;
+  const overlap = Math.min(80, 20 + total * 4);
+  const prevHand = state.handSnapshot || new Set();
+  const nextHand = new Set();
+  const counter = {};
   sortedHand.forEach((card, index) => {
     const btn = document.createElement("button");
     btn.className = "hand-card";
-    const angle = (index - center) * CARD_RENDER_OPTIONS.rotationStep;
-    btn.style.transform = `rotate(${angle}deg)`;
+    const cardId = `${card.rank}${card.suit}`;
+    btn.dataset.cardId = cardId;
+    const angle = (index - center) * CARD_RENDER_OPTIONS.rotationBase;
+    const finalTransform = `rotate(${angle}deg)`;
+    btn.style.setProperty("--final-transform", finalTransform);
+    btn.style.marginLeft = index === 0 ? "0" : `-${overlap}px`;
     btn.style.zIndex = index + 1;
     const img = document.createElement("img");
     img.src = getCardAsset(card);
     img.alt = formatCard(card);
     btn.appendChild(img);
     btn.addEventListener("click", () => handleCardClick(card));
+    nextHand.add(cardId);
+    if (!prevHand.has(cardId)) {
+      btn.classList.add("new-card");
+    }
     elements.handContainer.appendChild(btn);
+  });
+  state.handSnapshot = nextHand;
+  requestAnimationFrame(() => {
+    state.handPositions = measureHandPositions();
   });
 }
 
@@ -327,20 +364,129 @@ function hideDefenseModal() {
   elements.defenseOptions.innerHTML = "";
 }
 
-function createTableCard(card) {
+function createTableCard(card, key, prevTable, type = "attack") {
   const wrapper = document.createElement("div");
-  wrapper.className = "card-on-table";
+  wrapper.className = "table-card";
+  wrapper.classList.add(type);
+  const { angle, offsetX, offsetY } = computeCardTransform(key);
+  const baseTransform = `translate(-50%, -50%) translate(${offsetX}px, ${offsetY}px) rotate(${angle}deg)`;
+  wrapper.style.setProperty("--card-transform", baseTransform);
   const img = document.createElement("img");
   img.src = getCardAsset(card);
   img.alt = formatCard(card);
   wrapper.appendChild(img);
+  if (!prevTable.has(key)) {
+    wrapper.classList.add("new-card");
+  }
   return wrapper;
+}
+
+function computeCardTransform(key) {
+  let hash = 0;
+  for (let i = 0; i < key.length; i += 1) {
+    hash = (hash * 131 + key.charCodeAt(i)) & 0xffffffff;
+  }
+  const angle = ((hash % 2000) / 2000) * 24 - 12;
+  const offsetX = ((hash % 3000) / 3000) * 24 - 12;
+  const offsetY = (((hash >> 3) % 2000) / 2000) * 18 - 9;
+  return { angle, offsetX, offsetY };
+}
+
+function measureHandPositions() {
+  if (!elements.handContainer || !elements.gameSection) return new Map();
+  const parentRect = elements.gameSection.getBoundingClientRect();
+  const map = new Map();
+  elements.handContainer.querySelectorAll(".hand-card").forEach((el) => {
+    const cardId = el.dataset.cardId;
+    if (!cardId) return;
+    const rect = el.getBoundingClientRect();
+    const transform = window.getComputedStyle(el).transform;
+    map.set(cardId, {
+      x: rect.left - parentRect.left + rect.width / 2,
+      y: rect.top - parentRect.top + rect.height / 2,
+      width: rect.width,
+      height: rect.height,
+      transform: transform === "none" ? "rotate(0deg)" : transform,
+    });
+  });
+  return map;
+}
+
+function animateCardFromHandToTable(card, targetEl) {
+  if (!elements.animationLayer || !elements.gameSection) return;
+  const cardId = `${card.rank}${card.suit}`;
+  const start = state.handPositions?.get(cardId);
+  if (!start) return;
+  const clone = document.createElement("div");
+  clone.className = "card-on-table";
+  clone.style.position = "absolute";
+  clone.style.width = `${start.width}px`;
+  clone.style.height = `${start.height}px`;
+  clone.style.left = `${start.x - start.width / 2}px`;
+  clone.style.top = `${start.y - start.height / 2}px`;
+  clone.style.transform = start.transform;
+  clone.style.opacity = "1";
+  clone.style.zIndex = 60;
+  const img = document.createElement("img");
+  img.src = getCardAsset(card);
+  img.alt = formatCard(card);
+  clone.appendChild(img);
+  elements.animationLayer.appendChild(clone);
+  requestAnimationFrame(() => {
+    const targetRect = targetEl.getBoundingClientRect();
+    const parentRect = elements.gameSection.getBoundingClientRect();
+    const finalX = targetRect.left - parentRect.left;
+    const finalY = targetRect.top - parentRect.top;
+    const finalTransform = window.getComputedStyle(targetEl).transform;
+    clone.style.transition =
+      "left 0.45s ease, top 0.45s ease, transform 0.45s ease, opacity 0.45s ease";
+    clone.style.left = `${finalX}px`;
+    clone.style.top = `${finalY}px`;
+    clone.style.transform = finalTransform === "none" ? "rotate(0deg)" : finalTransform;
+    clone.style.opacity = "0.85";
+  });
+  clone.addEventListener(
+    "transitionend",
+    () => {
+      clone.remove();
+    },
+    { once: true }
+  );
+}
+
+function toggleWinnerModal(game) {
+  if (!elements.winnerModal || !elements.winnerMessage) return;
+  if (game.phase === "ended") {
+    const winner = game.players.find((p) => p.id === game.winnerId);
+    const name = winner ? winner.name : "все игроки";
+    elements.winnerMessage.textContent = `ПОЗДРАВЛЯЮ!! ПОБЕДИЛ ${name}`;
+    elements.winnerModal.classList.remove("hidden");
+  } else {
+    elements.winnerModal.classList.add("hidden");
+  }
+}
+
+function resetToMenu() {
+  state.game = null;
+  state.playerId = null;
+  state.inviteMode = false;
+  state.inviteGameId = null;
+  state.waitingOnly = false;
+  state.handSnapshot = new Set();
+  state.tableSnapshot = new Set();
+  state.lastPhase = null;
+  elements.winnerModal?.classList.add("hidden");
+  elements.lobbySection?.classList.add("hidden");
+  elements.gameSection?.classList.add("hidden");
+  elements.waitingScreen?.classList.add("hidden");
+  toggleEntryVisibility(false);
 }
 
 export {
   activateInviteMode,
   deactivateInviteMode,
   exitWaitingState,
+  resetToMenu,
   registerCallbacks,
   renderApp,
   requestInviteName,

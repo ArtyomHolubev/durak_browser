@@ -74,6 +74,8 @@ def serialize_game_for_player(game: GameState, player_id: str) -> Dict[str, Any]
         else None,
         "allowThrowIns": game.allow_throw_ins,
         "loserId": game.loser_id,
+        "winnerId": game.winner_id,
+        "rematchVotes": list(game.rematch_votes),
     }
     payload["availableActions"] = build_available_actions(game, player_id)
     return payload
@@ -172,6 +174,10 @@ async def handle_start_game(game: GameState, player: PlayerState) -> None:
         game.defender_index = 0
     recalc_attack_limit(game)
     game.table = []
+    game.discard = []
+    game.rematch_votes.clear()
+    game.winner_id = None
+    game.loser_id = None
     game.status_message = f"Атакует {game.players[game.attacker_index].name}"
     game.allow_throw_ins = False
     game.attack_passed.clear()
@@ -209,6 +215,63 @@ async def handle_join_lobby(
     )
     await broadcast_state(game)
     return player
+
+
+def reset_to_lobby(game: GameState) -> None:
+    game.phase = "lobby"
+    game.deck = []
+    game.table.clear()
+    game.discard.clear()
+    game.rematch_votes.clear()
+    game.loser_id = None
+    game.winner_id = None
+    game.attack_limit = MAX_ATTACKS
+    game.status_message = "Игра завершена. Создайте новую партию или дождитесь игроков."
+    game.trump_card = None
+    for player in game.players:
+        player.hand.clear()
+        player.is_out = False
+    game.attacker_index = None
+    game.defender_index = None
+
+
+def restart_game(game: GameState) -> None:
+    game.phase = "playing"
+    game.deck = build_deck()
+    game.discard = []
+    game.table = []
+    game.rematch_votes.clear()
+    game.winner_id = None
+    game.loser_id = None
+    game.attack_limit = MAX_ATTACKS
+    game.trump_card = game.deck[-1]
+    for player in game.players:
+        player.hand.clear()
+        player.is_out = False
+    for _ in range(6):
+        for pl in game.players:
+            pl.hand.append(game.deck.pop())
+            if not game.deck:
+                break
+        if not game.deck:
+            break
+    lowest_idx = lowest_trump_player(game.players, game.trump_card["suit"])
+    game.attacker_index = lowest_idx
+    game.defender_index = next_active_index(game, lowest_idx)
+    if game.defender_index is None:
+        game.defender_index = 0
+    recalc_attack_limit(game)
+    game.status_message = f"Атакует {game.players[game.attacker_index].name}"
+
+
+async def notify_return_to_menu(game: GameState) -> None:
+    for player in game.players:
+        if not player.websocket:
+            continue
+        try:
+            await player.websocket.send_json({"type": "return_to_menu"})
+        except Exception:
+            player.connected = False
 
 
 def validate_attack_card(
@@ -336,8 +399,13 @@ def check_for_game_end(game: GameState) -> None:
             loser = remaining[0]
             game.loser_id = loser.id
             game.status_message = f"{loser.name} остался в дураках."
+            winners = [pl for pl in game.players if pl.id != loser.id]
+            game.winner_id = winners[0].id if winners else None
         else:
             game.status_message = "Игра завершена."
+            finished = [pl for pl in game.players if not pl.hand]
+            game.winner_id = finished[0].id if finished else None
+        game.rematch_votes.clear()
 
 
 async def process_action(
@@ -347,6 +415,20 @@ async def process_action(
         async with game.lock:
             await handle_start_game(game, player)
         await broadcast_state(game)
+        return
+    if action in {"request_rematch", "cancel_rematch"}:
+        async with game.lock:
+            if game.phase != "ended":
+                raise ValueError("Повторное приглашение доступно после завершения партии.")
+            if action == "request_rematch":
+                game.rematch_votes.add(player.id)
+                if len(game.rematch_votes) == len(game.players):
+                    restart_game(game)
+            else:
+                reset_to_lobby(game)
+        await broadcast_state(game)
+        if action == "cancel_rematch":
+            await notify_return_to_menu(game)
         return
     if game.phase != "playing":
         raise ValueError("Игра ещё не началась.")
@@ -380,6 +462,14 @@ async def process_action(
             handle_attack_pass(game, player)
         elif action == "take_cards":
             defender_take_cards(game)
+        elif action == "request_rematch":
+            if game.phase != "ended":
+                raise ValueError("Повторить можно только после завершения партии.")
+            game.rematch_votes.add(player.id)
+            if len(game.rematch_votes) == len(game.players):
+                restart_game(game)
+        elif action == "cancel_rematch":
+            reset_to_lobby(game)
         else:
             raise ValueError("Неизвестное действие.")
         await broadcast_state(game)

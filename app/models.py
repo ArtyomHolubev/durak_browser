@@ -44,6 +44,8 @@ class GameState:
         self.history: List[str] = []
         self.loser_id: Optional[str] = None
         self.attack_limit: int = MAX_ATTACKS
+        self.rematch_votes: set[str] = set()
+        self.winner_id: Optional[str] = None
 
     def find_player(self, player_id: str) -> Optional[PlayerState]:
         for player in self.players:
