@@ -135,15 +135,16 @@
 }
 
 .slot {
+  position: relative;
   border: 1px dashed rgba(255, 255, 255, 0.2);
   border-radius: 16px;
   min-height: 220px;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
   background: rgba(255, 255, 255, 0.05);
+  padding: 12px;
+  overflow: hidden;
 }
 
 .card-token {
@@ -235,6 +236,7 @@
   transition: transform 0.2s ease, filter 0.2s ease;
   flex: 0 0 auto;
   margin-left: 0;
+  transform: var(--final-transform, rotate(0deg));
 }
 
 .hand-card.disabled {
@@ -251,8 +253,38 @@
 }
 
 .hand-card:not(.disabled):hover {
-  transform: translateY(-10px) scale(1.03);
+  transform: var(--final-transform, rotate(0deg)) translateY(-10px) scale(1.03);
   z-index: 20;
+}
+
+.hand-card.new-card {
+  animation: hand-from-deck 0.4s ease forwards;
+}
+
+.card-on-table.new-card {
+  animation: table-drop 0.35s ease forwards;
+}
+
+@keyframes hand-from-deck {
+  0% {
+    opacity: 0;
+    transform: translate(80px, -180px) scale(0.3);
+  }
+  100% {
+    opacity: 1;
+    transform: var(--final-transform);
+  }
+}
+
+@keyframes table-drop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -80%) scale(0.2);
+  }
+  100% {
+    opacity: 1;
+    transform: var(--card-transform, translate(-50%, -50%));
+  }
 }
 
 #players-inline {
@@ -338,13 +370,30 @@
 }
 
 .card-on-table {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   width: 110px;
   height: 160px;
+  transform: var(--card-transform, translate(-50%, -50%) rotate(0deg));
+  transition: transform 0.25s ease;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.4));
 }
 
 .card-on-table img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.4));
+}
+
+.card-on-table:hover {
+  z-index: 40;
+  transform: var(--card-transform, translate(-50%, -50%)) translateY(-10px) scale(1.07);
+}
+
+.slot small {
+  position: absolute;
+  bottom: 12px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
 }

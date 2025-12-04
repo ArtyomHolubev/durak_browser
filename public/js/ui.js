@@ -55,6 +55,10 @@ function toggleEntryVisibility(joined) {
   if (!elements.entrySection) return;
   const showWaiting = state.inviteMode || state.waitingOnly;
   if (joined) {
+    if (!state.waitingOnly) {
+      state.inviteMode = false;
+      state.inviteGameId = null;
+    }
     elements.entrySection.classList.add("hidden");
     document.body.classList.add("game-mode");
     if (showWaiting) {
@@ -119,8 +123,12 @@ function updateInviteLink(gameId) {
 function renderApp() {
   if (!state.game) return;
   const inLobby = state.game.phase === "lobby";
-  if (inLobby) {
-    state.waitingOnly = false;
+  if (state.lastPhase !== state.game.phase) {
+    if (state.game.phase === "playing") {
+      state.handSnapshot = new Set();
+      state.tableSnapshot = new Set();
+    }
+    state.lastPhase = state.game.phase;
   }
   if (!inLobby && state.waitingOnly) {
     exitWaitingState();
@@ -128,17 +136,22 @@ function renderApp() {
   toggleEntryVisibility(Boolean(state.playerId));
   const { game } = state;
   if (inLobby) {
-    elements.lobbySection?.classList.remove("hidden");
-    if (elements.roomCodeLabel) elements.roomCodeLabel.textContent = game.id;
-    if (elements.lobbyStatus) {
-      elements.lobbyStatus.textContent = `Ожидаем игроков: ${game.players.length}/${game.maxPlayers}`;
-    }
-    renderPlayers(game);
-    if (elements.startButton) {
-      const me = game.players.find((p) => p.id === state.playerId);
-      const activePlayers = game.players.filter((p) => !p.isOut);
-      const canStart = Boolean(me?.isHost) && activePlayers.length >= 2;
-      elements.startButton.classList.toggle("hidden", !canStart);
+    if (state.inviteMode || state.waitingOnly) {
+      elements.lobbySection?.classList.add("hidden");
+      elements.waitingScreen?.classList.remove("hidden");
+    } else {
+      elements.lobbySection?.classList.remove("hidden");
+      if (elements.roomCodeLabel) elements.roomCodeLabel.textContent = game.id;
+      if (elements.lobbyStatus) {
+        elements.lobbyStatus.textContent = `Ожидаем игроков: ${game.players.length}/${game.maxPlayers}`;
+      }
+      renderPlayers(game);
+      if (elements.startButton) {
+        const me = game.players.find((p) => p.id === state.playerId);
+        const activePlayers = game.players.filter((p) => !p.isOut);
+        const canStart = Boolean(me?.isHost) && activePlayers.length >= 2;
+        elements.startButton.classList.toggle("hidden", !canStart);
+      }
     }
   } else {
     elements.lobbySection?.classList.add("hidden");
@@ -232,12 +245,18 @@ function renderTable(table) {
     return;
   }
   elements.tableEl.style.color = "";
+  const prevTable = state.tableSnapshot || new Set();
+  const nextTable = new Set();
   table.forEach((slot, index) => {
     const cell = document.createElement("div");
     cell.className = "slot";
-    cell.appendChild(createTableCard(slot.attack));
+    const attackKey = `${slot.attack.rank}${slot.attack.suit}-A${index}`;
+    nextTable.add(attackKey);
+    cell.appendChild(createTableCard(slot.attack, attackKey, prevTable, "attack"));
     if (slot.defense) {
-      cell.appendChild(createTableCard(slot.defense));
+      const defenseKey = `${slot.defense.rank}${slot.defense.suit}-D${index}`;
+      nextTable.add(defenseKey);
+      cell.appendChild(createTableCard(slot.defense, defenseKey, prevTable, "defense"));
     } else {
       const label = document.createElement("small");
       label.textContent = `Слот #${index + 1}`;
@@ -245,6 +264,7 @@ function renderTable(table) {
     }
     elements.tableEl.appendChild(cell);
   });
+  state.tableSnapshot = nextTable;
 }
 
 function renderHand(game) {
@@ -256,11 +276,15 @@ function renderHand(game) {
   const total = sortedHand.length;
   const center = (total - 1) / 2;
   const overlap = Math.min(80, 20 + total * 4);
+  const prevHand = state.handSnapshot || new Set();
+  const nextHand = new Set();
+  const counter = {};
   sortedHand.forEach((card, index) => {
     const btn = document.createElement("button");
     btn.className = "hand-card";
     const angle = (index - center) * CARD_RENDER_OPTIONS.rotationBase;
-    btn.style.transform = `rotate(${angle}deg)`;
+    const finalTransform = `rotate(${angle}deg)`;
+    btn.style.setProperty("--final-transform", finalTransform);
     btn.style.marginLeft = index === 0 ? "0" : `-${overlap}px`;
     btn.style.zIndex = index + 1;
     const img = document.createElement("img");
@@ -268,8 +292,16 @@ function renderHand(game) {
     img.alt = formatCard(card);
     btn.appendChild(img);
     btn.addEventListener("click", () => handleCardClick(card));
+    const occur = counter[card.rank + card.suit] || 0;
+    counter[card.rank + card.suit] = occur + 1;
+    const key = `${card.rank}${card.suit}-${occur}`;
+    nextHand.add(key);
+    if (!prevHand.has(key)) {
+      btn.classList.add("new-card");
+    }
     elements.handContainer.appendChild(btn);
   });
+  state.handSnapshot = nextHand;
 }
 
 function renderPlayerBadges(game) {
@@ -333,14 +365,32 @@ function hideDefenseModal() {
   elements.defenseOptions.innerHTML = "";
 }
 
-function createTableCard(card) {
+function createTableCard(card, key, prevTable, type = "attack") {
   const wrapper = document.createElement("div");
   wrapper.className = "card-on-table";
+  wrapper.classList.add(type);
+  const { angle, offsetX, offsetY } = computeCardTransform(key);
+  const baseTransform = `translate(-50%, -50%) translate(${offsetX}px, ${offsetY}px) rotate(${angle}deg)`;
+  wrapper.style.setProperty("--card-transform", baseTransform);
   const img = document.createElement("img");
   img.src = getCardAsset(card);
   img.alt = formatCard(card);
   wrapper.appendChild(img);
+  if (!prevTable.has(key)) {
+    wrapper.classList.add("new-card");
+  }
   return wrapper;
+}
+
+function computeCardTransform(key) {
+  let hash = 0;
+  for (let i = 0; i < key.length; i += 1) {
+    hash = (hash * 131 + key.charCodeAt(i)) & 0xffffffff;
+  }
+  const angle = ((hash % 2000) / 2000) * 24 - 12;
+  const offsetX = ((hash % 3000) / 3000) * 24 - 12;
+  const offsetY = (((hash >> 3) % 2000) / 2000) * 18 - 9;
+  return { angle, offsetX, offsetY };
 }
 
 function toggleWinnerModal(game) {
@@ -361,6 +411,9 @@ function resetToMenu() {
   state.inviteMode = false;
   state.inviteGameId = null;
   state.waitingOnly = false;
+  state.handSnapshot = new Set();
+  state.tableSnapshot = new Set();
+  state.lastPhase = null;
   elements.winnerModal?.classList.add("hidden");
   elements.lobbySection?.classList.add("hidden");
   elements.gameSection?.classList.add("hidden");
