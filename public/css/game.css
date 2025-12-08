@@ -443,3 +443,96 @@
   color: rgba(255, 255, 255, 0.65);
   font-size: 14px;
 }
+
+@media (max-width: 900px) {
+  .page {
+    padding: 16px 12px 40px;
+  }
+
+  header {
+    margin-bottom: 20px;
+  }
+
+  .flex.entry-section {
+    flex-direction: column;
+  }
+
+  .invite-info {
+    width: 100%;
+  }
+
+  .game-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  #hand-cards {
+    padding: 18px 4px 6px;
+    min-height: 150px;
+  }
+
+  .hand-card {
+    width: 90px;
+    height: 130px;
+  }
+
+  .table-card {
+    width: 90px;
+    height: 130px;
+  }
+
+  .hand-actions {
+    flex-direction: column;
+  }
+
+  .players-inline {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 600px) {
+  :root {
+    font-size: 15px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  #game {
+    overflow: visible;
+  }
+
+  #table {
+    min-height: 320px;
+  }
+
+  .table-card {
+    width: 80px;
+    height: 110px;
+  }
+
+  .hand-card {
+    width: 80px;
+    height: 120px;
+  }
+
+  .hand-card:not(.disabled):hover {
+    transform: var(--final-transform, rotate(0deg)) scale(1.02);
+  }
+
+  .hand-actions button {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  .deck-area {
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
+  .meta {
+    align-items: flex-start;
+  }
+}
