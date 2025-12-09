@@ -38,6 +38,7 @@ const elements = {
   winnerMessage: document.getElementById("winner-message"),
   rematchBtn: document.getElementById("rematch-btn"),
   exitRematchBtn: document.getElementById("exit-rematch-btn"),
+  rematchStatus: document.getElementById("rematch-status"),
   animationLayer: document.getElementById("animation-layer"),
   chatPanel: document.getElementById("chat-panel"),
   chatLog: document.getElementById("chat-log"),
