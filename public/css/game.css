@@ -179,6 +179,12 @@
   border: none;
 }
 
+#surrender-btn {
+  background: #111;
+  color: #fff;
+  border: none;
+}
+
 #pass-btn:active:not(:disabled) {
   background: #111;
   color: #fff;
@@ -191,7 +197,8 @@
 }
 
 #pass-btn:disabled,
-#take-btn:disabled {
+#take-btn:disabled,
+#surrender-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
   filter: grayscale(0.4);

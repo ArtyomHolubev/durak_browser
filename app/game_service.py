@@ -53,6 +53,28 @@ def add_chat_message(game: GameState, player: PlayerState, text: str) -> None:
         game.chat_messages = game.chat_messages[-200:]
 
 
+def handle_surrender(game: GameState, player: PlayerState) -> None:
+    if game.phase != "playing":
+        raise ValueError("Сдаваться можно только во время партии.")
+    active_players = [pl for pl in game.players if not pl.is_out]
+    if len(active_players) > 2:
+        raise ValueError("Сдаваться можно только когда остались два игрока.")
+    game.phase = "ended"
+    game.surrendered_player = player.id
+    game.loser_id = player.id
+    opponent = next((pl for pl in active_players if pl.id != player.id), None)
+    game.winner_id = opponent.id if opponent else None
+    game.status_message = (
+        f"{player.name} с позором сдался и убежал, поджав хвост."
+    )
+    game.rematch_votes.clear()
+    for pl in game.players:
+        pl.hand.clear()
+        pl.is_out = False
+    game.attack_passed.clear()
+    game.allow_throw_ins = False
+
+
 def serialize_game_for_player(game: GameState, player_id: str) -> Dict[str, Any]:
     player = game.find_player(player_id)
     you_cards = player.hand if player else []
@@ -89,6 +111,7 @@ def serialize_game_for_player(game: GameState, player_id: str) -> Dict[str, Any]
         "winnerId": game.winner_id,
         "rematchVotes": list(game.rematch_votes),
         "chat": game.chat_messages[-120:],
+        "surrenderedPlayer": game.surrendered_player,
     }
     payload["availableActions"] = build_available_actions(game, player_id)
     return payload
@@ -102,6 +125,7 @@ def build_available_actions(game: GameState, player_id: str) -> Dict[str, Any]:
         "canPass": False,
         "canDefend": False,
         "canTake": False,
+        "canSurrender": False,
     }
     player = game.find_player(player_id)
     if not player or player.is_out:
@@ -139,6 +163,9 @@ def build_available_actions(game: GameState, player_id: str) -> Dict[str, Any]:
     if player.id == defender.id:
         actions["canDefend"] = pending_defense
         actions["canTake"] = bool(game.table)
+    active_players = [pl for pl in game.players if not pl.is_out]
+    if len(active_players) <= 2 and player.id in {pl.id for pl in active_players}:
+        actions["canSurrender"] = True
     return actions
 
 
@@ -191,6 +218,7 @@ async def handle_start_game(game: GameState, player: PlayerState) -> None:
     game.rematch_votes.clear()
     game.winner_id = None
     game.loser_id = None
+    game.surrendered_player = None
     game.status_message = f"Атакует {game.players[game.attacker_index].name}"
     game.allow_throw_ins = False
     game.attack_passed.clear()
@@ -239,6 +267,7 @@ def reset_to_lobby(game: GameState) -> None:
     game.loser_id = None
     game.winner_id = None
     game.attack_limit = MAX_ATTACKS
+    game.surrendered_player = None
     game.status_message = "Игра завершена. Создайте новую партию или дождитесь игроков."
     game.trump_card = None
     for player in game.players:
@@ -257,6 +286,7 @@ def restart_game(game: GameState) -> None:
     game.winner_id = None
     game.loser_id = None
     game.attack_limit = MAX_ATTACKS
+    game.surrendered_player = None
     game.trump_card = game.deck[-1]
     for player in game.players:
         player.hand.clear()
@@ -449,6 +479,11 @@ async def process_action(
             raise ValueError("Нельзя отправить пустое сообщение.")
         async with game.lock:
             add_chat_message(game, player, text[:300])
+        await broadcast_state(game)
+        return
+    if action == "surrender":
+        async with game.lock:
+            handle_surrender(game, player)
         await broadcast_state(game)
         return
     if game.phase != "playing":

@@ -18,6 +18,8 @@ registerCallbacks({
     sendAction("play_defense", { card, attackIndex }),
 });
 
+elements.surrenderButton?.addEventListener("click", () => sendAction("surrender"));
+
 elements.createForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const name = elements.createNameInput.value.trim();
@@ -170,3 +172,4 @@ if (presetCode) {
 }
 
 renderApp();
+

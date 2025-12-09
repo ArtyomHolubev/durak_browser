@@ -205,6 +205,9 @@ function renderGameBoard(game) {
   const actions = game.availableActions || {};
   if (elements.passButton) elements.passButton.disabled = !actions.canPass;
   if (elements.takeButton) elements.takeButton.disabled = !actions.canTake;
+  if (elements.surrenderButton) {
+    elements.surrenderButton.disabled = !actions.canSurrender;
+  }
   renderDeck(game);
   renderTable(game.table);
   renderHand(game);
@@ -459,7 +462,13 @@ function toggleWinnerModal(game) {
   if (game.phase === "ended") {
     const winner = game.players.find((p) => p.id === game.winnerId);
     const name = winner ? winner.name : "все игроки";
-    elements.winnerMessage.textContent = `ПОЗДРАВЛЯЮ!! ПОБЕДИЛ ${name}`;
+    if (game.surrenderedPlayer) {
+      const loser = game.players.find((p) => p.id === game.surrenderedPlayer);
+      const loserName = loser ? loser.name : "Игрок";
+      elements.winnerMessage.textContent = `${loserName} с позором сдался и убежал, поджав хвост.`;
+    } else {
+      elements.winnerMessage.textContent = `ПОЗДРАВЛЯЮ!! ПОБЕДИЛ ${name}`;
+    }
     elements.winnerModal.classList.remove("hidden");
   } else {
     elements.winnerModal.classList.add("hidden");
