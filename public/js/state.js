@@ -12,6 +12,7 @@ const state = {
   lastPhase: null,
   handPositions: new Map(),
   lastChatLength: 0,
+  playerColors: new Map(),
 };
 
 const PLAYER_KEY = (gameId) => `durak-player-${gameId}`;
