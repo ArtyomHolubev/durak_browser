@@ -22,6 +22,7 @@ const elements = {
   handContainer: document.getElementById("hand-cards"),
   passButton: document.getElementById("pass-btn"),
   takeButton: document.getElementById("take-btn"),
+  surrenderButton: document.getElementById("surrender-btn"),
   toast: document.getElementById("toast"),
   playersInline: document.getElementById("players-inline"),
   deckInfo: document.getElementById("deck-info"),
