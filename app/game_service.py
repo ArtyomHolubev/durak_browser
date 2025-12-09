@@ -41,6 +41,18 @@ def ranks_on_table(game: GameState) -> set[str]:
     return ranks
 
 
+def add_chat_message(game: GameState, player: PlayerState, text: str) -> None:
+    game.chat_messages.append(
+        {
+            "playerId": player.id,
+            "playerName": player.name,
+            "text": text,
+        }
+    )
+    if len(game.chat_messages) > 200:
+        game.chat_messages = game.chat_messages[-200:]
+
+
 def serialize_game_for_player(game: GameState, player_id: str) -> Dict[str, Any]:
     player = game.find_player(player_id)
     you_cards = player.hand if player else []
@@ -76,6 +88,7 @@ def serialize_game_for_player(game: GameState, player_id: str) -> Dict[str, Any]
         "loserId": game.loser_id,
         "winnerId": game.winner_id,
         "rematchVotes": list(game.rematch_votes),
+        "chat": game.chat_messages[-120:],
     }
     payload["availableActions"] = build_available_actions(game, player_id)
     return payload
@@ -430,6 +443,14 @@ async def process_action(
         if action == "cancel_rematch":
             await notify_return_to_menu(game)
         return
+    if action == "send_chat":
+        text = (data.get("message") or "").strip()
+        if not text:
+            raise ValueError("Нельзя отправить пустое сообщение.")
+        async with game.lock:
+            add_chat_message(game, player, text[:300])
+        await broadcast_state(game)
+        return
     if game.phase != "playing":
         raise ValueError("Игра ещё не началась.")
     async with game.lock:
@@ -502,3 +523,11 @@ async def websocket_handler(websocket: WebSocket, game_id: str) -> None:
             player.connected = False
             player.websocket = None
             await broadcast_state(game)
+    if action == "send_chat":
+        text = (data.get("message") or "").strip()
+        if not text:
+            raise ValueError("Нельзя отправить пустое сообщение.")
+        async with game.lock:
+            add_chat_message(game, player, text[:300])
+        await broadcast_state(game)
+        return

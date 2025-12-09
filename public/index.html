@@ -82,37 +82,51 @@
       </section>
 
       <section id="game" class="card hidden">
-        <div id="animation-layer" class="animation-layer"></div>
-        <header class="game-header">
-          <div>
-            <h2>Игровое поле</h2>
-            <p id="game-status"></p>
-            <p id="deck-info" class="deck-info"></p>
-          </div>
-          <div class="meta">
-            <div class="deck-area">
-              <div class="trump-wrapper">
-                <span id="trump-label" class="trump-label hidden">Козырь</span>
-                <div id="trump-card-visual" class="trump-card-visual hidden"></div>
-              </div>
-              <div class="deck-stack-wrapper">
-                <div id="deck-stack" class="deck-stack"></div>
-                <div id="deck-count" class="deck-count">0</div>
-              </div>
+  <div id="animation-layer" class="animation-layer"></div>
+  <div class="game-body">
+    <div class="board-area">
+      <header class="game-header">
+        <div>
+          <h2>Игровое поле</h2>
+          <p id="game-status"></p>
+          <p id="deck-info" class="deck-info"></p>
+        </div>
+        <div class="meta">
+          <div class="deck-area">
+            <div class="trump-wrapper">
+              <span id="trump-label" class="trump-label hidden">Козырь</span>
+              <div id="trump-card-visual" class="trump-card-visual hidden"></div>
+            </div>
+            <div class="deck-stack-wrapper">
+              <div id="deck-stack" class="deck-stack"></div>
+              <div id="deck-count" class="deck-count">0</div>
             </div>
           </div>
-        </header>
-        <div id="table"></div>
-        <div id="players-inline"></div>
-        <section id="hand">
-          <h3>Ваши карты</h3>
-          <div id="hand-cards"></div>
-          <div class="hand-actions">
-            <button id="pass-btn" class="secondary">Отбой</button>
-            <button id="take-btn" class="secondary">Беру</button>
-          </div>
-        </section>
+        </div>
+      </header>
+      <div id="table"></div>
+      <div id="players-inline"></div>
+      <section id="hand">
+        <h3>Ваши карты</h3>
+        <div id="hand-cards"></div>
+        <div class="hand-actions">
+          <button id="pass-btn" class="secondary">Пас</button>
+          <button id="take-btn" class="secondary">Беру</button>
+        </div>
       </section>
+    </div>
+    <aside id="chat-panel" class="chat-panel hidden">
+      <h3>Чат</h3>
+      <div id="chat-log"></div>
+      <form id="chat-form">
+        <input type="text" id="chat-input" placeholder="Сообщение..." maxlength="300" autocomplete="off" />
+        <button type="submit">→</button>
+      </form>
+    </aside>
+  </div>
+</section>
+      </section>
+      
     </div>
     <div id="toast" class="hidden"></div>
     <div id="defense-modal" class="hidden">

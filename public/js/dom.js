@@ -38,6 +38,10 @@ const elements = {
   rematchBtn: document.getElementById("rematch-btn"),
   exitRematchBtn: document.getElementById("exit-rematch-btn"),
   animationLayer: document.getElementById("animation-layer"),
+  chatPanel: document.getElementById("chat-panel"),
+  chatLog: document.getElementById("chat-log"),
+  chatForm: document.getElementById("chat-form"),
+  chatInput: document.getElementById("chat-input"),
 };
 
 const SUIT_SYMBOL = {
