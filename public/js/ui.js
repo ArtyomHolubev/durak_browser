@@ -3,6 +3,15 @@ import elements, { getCardAsset, formatCard } from "./dom.js";
 
 const RANK_ORDER = ["6", "7", "8", "9", "10", "J", "Q", "K", "A"];
 const SUIT_ORDER = ["C", "D", "H", "S"];
+const PLAYER_COLORS = [
+  "#ffb347",
+  "#ff6961",
+  "#f9a602",
+  "#7cf4ff",
+  "#a485ff",
+  "#9dff7c",
+  "#ff8ad8",
+];
 const RANK_INDEX = RANK_ORDER.reduce((acc, rank, idx) => {
   acc[rank] = idx;
   return acc;
@@ -415,6 +424,24 @@ function measureHandPositions() {
   return map;
 }
 
+function getPlayerColor(playerId) {
+  if (!playerId) return "#f6d49c";
+  if (!state.playerColors.has(playerId)) {
+    const hash = hashString(playerId);
+    const color = PLAYER_COLORS[Math.abs(hash) % PLAYER_COLORS.length];
+    state.playerColors.set(playerId, color);
+  }
+  return state.playerColors.get(playerId);
+}
+
+function hashString(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i += 1) {
+    hash = (hash * 31 + str.charCodeAt(i)) & 0xffffffff;
+  }
+  return hash;
+}
+
 function animateCardFromHandToTable(card, targetEl) {
   if (!elements.animationLayer || !elements.gameSection) return;
   const cardId = `${card.rank}${card.suit}`;
@@ -500,6 +527,7 @@ function resetToMenu() {
   state.lastPhase = null;
   state.handPositions = new Map();
   state.lastChatLength = 0;
+  state.playerColors = new Map();
   elements.winnerModal?.classList.add("hidden");
   elements.lobbySection?.classList.add("hidden");
   elements.gameSection?.classList.add("hidden");

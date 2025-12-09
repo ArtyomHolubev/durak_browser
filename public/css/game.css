@@ -1,5 +1,7 @@
 #game {
   margin-top: 20px;
+  background: linear-gradient(135deg, rgba(16, 37, 25, 0.95), rgba(7, 12, 9, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .game-header {
@@ -14,13 +16,13 @@
   flex-direction: column;
   gap: 6px;
   align-items: flex-end;
-  color: #111;
+  color: #f5eddc;
 }
 
 #game #deck-info {
   margin-top: 4px;
   font-weight: 600;
-  color: #111;
+  color: #f4eddc;
 }
 
 .deck-area {
@@ -30,6 +32,9 @@
   justify-content: flex-end;
   gap: 24px;
   min-height: 200px;
+  background: rgba(0, 0, 0, 0.08);
+  padding: 12px;
+  border-radius: 16px;
 }
 
 .trump-wrapper {
@@ -111,14 +116,14 @@
 .trump-label {
   font-size: 14px;
   letter-spacing: 0.4px;
-  color: #111;
+  color: #dbcaa4;
   font-weight: 600;
 }
 
 #game h2,
 #game h3,
 #game p {
-  color: #111;
+  color: #dbcaa4;
 }
 
 #table {
@@ -126,18 +131,19 @@
   margin: 20px 0;
   min-height: 360px;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.25);
+  background: radial-gradient(circle at 35% 20%, rgba(122, 80, 39, 0.92), rgba(50, 30, 15, 0.95));
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.55);
   overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .card-token {
   border-radius: 10px;
   padding: 6px 10px;
   font-weight: 600;
-  background: white;
-  border: 1px solid #b8c9f5;
-  box-shadow: 0 6px 14px rgba(34, 67, 158, 0.15);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
 }
 
 .card-token.attack {
@@ -149,10 +155,11 @@
 }
 
 #hand {
-  background: rgba(255, 255, 255, 0.05);
+  background: radial-gradient(circle at 30% 10%, rgba(60, 97, 70, 0.85), rgba(29, 55, 38, 0.88));
   border-radius: 18px;
   padding: 16px;
-  color: #111;
+  color: #f5eddc;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .hand-actions {
@@ -214,6 +221,7 @@
   padding: 24px 8px 10px;
   min-height: 190px;
   position: relative;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .hand-card {
@@ -317,16 +325,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 20;
+  z-index: 999;
 }
 
 .modal-card {
-  background: white;
+  background: #162b1d;
   padding: 24px;
   border-radius: 18px;
   max-width: 420px;
   width: 90%;
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f5eddc;
 }
 
 .winner-card {
@@ -341,18 +351,25 @@
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 16px;
-  color: #111;
+  color: #f5eddc;
 }
 
 .rematch-status {
   font-size: 14px;
-  color: #444;
+  color: #f4eddc;
   margin: 0 0 12px;
 }
 
 .modal-actions {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
+}
+
+#winner-modal button.secondary {
+  background: rgba(5, 7, 6, 0.85);
+  color: #f5eddc;
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 #defense-options {
@@ -420,8 +437,8 @@
   margin: 20px 0;
   min-height: 360px;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.25);
+  background: radial-gradient(circle at 35% 20%, rgba(122, 80, 39, 0.92), rgba(50, 30, 15, 0.95));
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.55);
   overflow: hidden;
 }
 
@@ -531,6 +548,7 @@
 
   #table {
     min-height: 320px;
+    background: radial-gradient(circle at 35% 20%, rgba(122, 80, 39, 0.92), rgba(50, 30, 15, 0.95));
   }
 
   .table-card {
@@ -580,14 +598,15 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  border-left: 1px solid rgba(17, 17, 17, 0.08);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
   padding-left: 12px;
   position: relative;
   z-index: 60;
+  color: #f4eddc;
 }
 
 .chat-panel h3 {
-  margin-top: 0;
+  margin: 0;
 }
 
 .chat-message {
@@ -597,21 +616,21 @@
 }
 
 .chat-message strong {
-  color: #1d3b72;
+  color: inherit;
   flex-shrink: 0;
 }
 
 .chat-message span {
-  color: #111;
+  color: #fff;
   word-break: break-word;
   flex: 1;
 }
 
 #chat-log {
-  border: 1px solid rgba(17, 17, 17, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 12px;
-  background: #f8faff;
+  background: linear-gradient(135deg, rgba(219, 202, 164, 0.25), rgba(132, 117, 88, 0.3));
   height: 10.5em;
   overflow-y: auto;
   font-size: 15px;
@@ -627,10 +646,10 @@
   width: 100%;
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid #cdd6f6;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   font-size: 16px;
   color: #111;
-  background: #fff;
+  background: linear-gradient(135deg, rgba(219, 202, 164, 0.95), rgba(188, 170, 132, 0.9));
 }
 
 #chat-form button {
@@ -638,12 +657,8 @@
   padding: 10px 14px;
   border-radius: 10px;
   border: none;
-  background: #2f6fed;
-  color: #fff;
+  background: linear-gradient(140deg, #4a2812, #8c4f24);
+  color: #f5eddc;
   font-weight: 600;
   cursor: pointer;
-}
-
-.chat-panel h3 {
-  margin: 0;
 }

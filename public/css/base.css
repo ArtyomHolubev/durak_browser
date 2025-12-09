@@ -1,18 +1,19 @@
 :root {
   font-family: "Segoe UI", system-ui, sans-serif;
-  color: #111;
-  background: #f4f6fb;
+  color: #f4eddc;
+  background: #0b140e;
 }
 
 body {
   margin: 0;
-  background: #f4f6fb;
+  background: radial-gradient(circle at 35% 20%, rgba(18, 56, 32, 0.85), #040704 65%, #020503);
   transition: background 0.3s ease;
+  color: inherit;
 }
 
 body.game-mode {
-  background: radial-gradient(circle at top, #1b2643, #0d111f 55%, #05070f);
-  color: #f5f5f5;
+  background: radial-gradient(circle at 30% 15%, rgba(26, 74, 41, 0.9), #050b05 70%, #020403);
+  color: #f4eddc;
 }
 
 .page {
@@ -27,7 +28,7 @@ header {
 }
 
 .subtitle {
-  color: #555;
+  color: #dbcaa4;
   margin-top: 0;
 }
 
@@ -39,34 +40,25 @@ header {
 }
 
 .card {
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 10px 25px rgba(15, 44, 90, 0.08);
+  background: rgba(24, 37, 27, 0.95);
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 18px 35px rgba(0, 0, 0, 0.55);
   flex: 1 1 280px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .waiting-card {
   text-align: center;
   padding: 40px 20px;
-  color: #111;
-}
-
-.waiting-card h2,
-.waiting-card p {
-  color: #111;
-}
-
-.lobby-header h2,
-.lobby-header p {
-  color: #111;
+  color: #f4eddc;
 }
 
 label {
   display: block;
   font-weight: 600;
   margin-bottom: 6px;
-  color: #111;
+  color: #f1dfb8;
 }
 
 input,
@@ -75,8 +67,10 @@ button {
   box-sizing: border-box;
   font-size: 16px;
   border-radius: 12px;
-  border: 1px solid #d0d7eb;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f4eddc;
 }
 
 input {
@@ -85,21 +79,22 @@ input {
 
 button {
   cursor: pointer;
-  background: #2f6fed;
+  background: linear-gradient(130deg, #8f5f2e, #d49a52);
   border: none;
-  color: white;
+  color: #1b1208;
   font-weight: 600;
-  transition: background 0.2s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 button:hover {
-  background: #1d57c4;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
 }
 
 button.secondary {
-  background: white;
-  color: #2f6fed;
-  border: 1px solid #aac4ff;
+  background: transparent;
+  color: #f4eddc;
+  border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 .hidden {
@@ -110,7 +105,7 @@ button.secondary {
   list-style: none;
   padding-left: 0;
   margin: 16px 0;
-  color: #111;
+  color: #f4eddc;
 }
 
 #players li {
@@ -119,7 +114,7 @@ button.secondary {
   align-items: center;
   padding: 8px 12px;
   border-radius: 10px;
-  background: #f2f4fd;
+  background: rgba(255, 255, 255, 0.05);
   margin-bottom: 8px;
 }
 
@@ -127,23 +122,16 @@ button.secondary {
   font-size: 13px;
   padding: 4px 10px;
   border-radius: 12px;
-  background: #dfe8ff;
-  color: #103086;
+  background: rgba(151, 100, 46, 0.4);
+  color: #f1dfb8;
 }
 
 #lobby-status {
-  color: #111;
+  color: #d9c499;
 }
 
 .invite-info {
   max-width: 320px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.invite-info.compact {
-  display: none;
 }
 
 .lobby-header {
@@ -154,14 +142,108 @@ button.secondary {
   flex-wrap: wrap;
 }
 
-#toast {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #212121;
-  color: white;
-  padding: 12px 20px;
-  border-radius: 16px;
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.2);
+.chat-panel {
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  padding-left: 12px;
+  position: relative;
+  z-index: 60;
+}
+
+.chat-panel h3 {
+  margin: 0;
+}
+
+.chat-message {
+  margin-bottom: 8px;
+  display: flex;
+  gap: 6px;
+}
+
+.chat-message strong {
+  color: #f6d49c;
+  flex-shrink: 0;
+}
+
+.chat-message span {
+  color: #f4eddc;
+  word-break: break-word;
+  flex: 1;
+}
+
+#chat-log {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(219, 202, 164, 0.2), rgba(134, 120, 90, 0.25));
+  height: 10.5em;
+  overflow-y: auto;
+  font-size: 15px;
+}
+
+#chat-form {
+  display: flex;
+  gap: 8px;
+  flex-direction: column;
+}
+
+#chat-form input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 16px;
+  color: #111;
+  background: linear-gradient(135deg, rgba(219, 202, 164, 0.95), rgba(188, 170, 132, 0.9));
+}
+
+#chat-form button {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(140deg, #4a2812, #8c4f24);
+  color: #f5eddc;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .page {
+    padding: 18px 12px 40px;
+  }
+
+  .flex.entry-section {
+    flex-direction: column;
+  }
+
+  .chat-panel {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-left: 0;
+    padding-top: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  :root {
+    font-size: 15px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  #chat-log {
+    height: 6em;
+  }
+
+  button,
+  input {
+    font-size: 15px;
+  }
 }
