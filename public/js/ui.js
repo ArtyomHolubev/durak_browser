@@ -465,13 +465,27 @@ function toggleWinnerModal(game) {
     if (game.surrenderedPlayer) {
       const loser = game.players.find((p) => p.id === game.surrenderedPlayer);
       const loserName = loser ? loser.name : "Игрок";
-      elements.winnerMessage.textContent = `${loserName} с позором сдался и убежал, поджав хвост.`;
+      elements.winnerMessage.textContent = `${loserName} с позором сдался и убежал, поджав хвост!`;
     } else {
       elements.winnerMessage.textContent = `ПОЗДРАВЛЯЮ!! ПОБЕДИЛ ${name}`;
     }
     elements.winnerModal.classList.remove("hidden");
+    if (elements.rematchStatus) {
+      const pending = game.players
+        .filter((p) => !game.rematchVotes.includes(p.id))
+        .map((p) => p.name);
+      if (pending.length > 0) {
+        elements.rematchStatus.textContent = `Ждём подтверждения от: ${pending.join(", ")}`;
+        elements.rematchStatus.classList.remove("hidden");
+      } else {
+        elements.rematchStatus.textContent = "";
+        elements.rematchStatus.classList.add("hidden");
+      }
+    }
   } else {
     elements.winnerModal.classList.add("hidden");
+    elements.rematchStatus?.classList.add("hidden");
+    if (elements.rematchStatus) elements.rematchStatus.textContent = "";
   }
 }
 

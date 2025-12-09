@@ -179,7 +179,7 @@
   border: none;
 }
 
-#surrender-btn {
+.hand-actions .dangerous {
   background: #111;
   color: #fff;
   border: none;
@@ -342,6 +342,12 @@
   font-weight: 600;
   margin-bottom: 16px;
   color: #111;
+}
+
+.rematch-status {
+  font-size: 14px;
+  color: #444;
+  margin: 0 0 12px;
 }
 
 .modal-actions {
