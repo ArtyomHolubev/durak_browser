@@ -46,6 +46,7 @@ class GameState:
         self.attack_limit: int = MAX_ATTACKS
         self.rematch_votes: set[str] = set()
         self.winner_id: Optional[str] = None
+        self.chat_messages: List[Dict[str, str]] = []
 
     def find_player(self, player_id: str) -> Optional[PlayerState]:
         for player in self.players:

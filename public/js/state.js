@@ -11,6 +11,7 @@ const state = {
   tableSnapshot: new Set(),
   lastPhase: null,
   handPositions: new Map(),
+  lastChatLength: 0,
 };
 
 const PLAYER_KEY = (gameId) => `durak-player-${gameId}`;

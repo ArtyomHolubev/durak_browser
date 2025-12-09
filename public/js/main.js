@@ -109,6 +109,18 @@ elements.exitRematchBtn?.addEventListener("click", (event) => {
   sendAction("cancel_rematch");
 });
 
+elements.chatForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const value = elements.chatInput?.value.trim();
+  if (!value) {
+    return;
+  }
+  sendAction("send_chat", { message: value });
+  if (elements.chatInput) {
+    elements.chatInput.value = "";
+  }
+});
+
 elements.copyLinkButton?.addEventListener("click", async () => {
   if (!elements.inviteLinkInput?.value) return;
   const originalText = elements.copyLinkButton.textContent;

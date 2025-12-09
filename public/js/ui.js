@@ -160,15 +160,15 @@ function renderApp() {
     elements.inviteInfo?.classList.add("compact");
   }
 
-  if (game.phase === "playing" || game.phase === "ended") {
-    elements.gameSection?.classList.remove("hidden");
+  const showGame = game.phase === "playing" || game.phase === "ended";
+  elements.gameSection?.classList.toggle("hidden", !showGame);
+  elements.chatPanel?.classList.toggle("hidden", !showGame || !state.playerId);
+  renderChat(game);
+  if (showGame) {
     renderGameBoard(game);
-  } else {
-    elements.gameSection?.classList.add("hidden");
-    if (state.inviteMode && state.playerId) {
-      elements.lobbySection?.classList.add("hidden");
-      elements.waitingScreen?.classList.remove("hidden");
-    }
+  } else if (state.inviteMode && state.playerId) {
+    elements.lobbySection?.classList.add("hidden");
+    elements.waitingScreen?.classList.remove("hidden");
   }
   toggleWinnerModal(game);
 }
@@ -475,6 +475,8 @@ function resetToMenu() {
   state.handSnapshot = new Set();
   state.tableSnapshot = new Set();
   state.lastPhase = null;
+  state.handPositions = new Map();
+  state.lastChatLength = 0;
   elements.winnerModal?.classList.add("hidden");
   elements.lobbySection?.classList.add("hidden");
   elements.gameSection?.classList.add("hidden");
@@ -495,3 +497,29 @@ export {
   updateInviteLink,
   hideDefenseModal,
 };
+function renderChat(game) {
+  if (!elements.chatPanel || !elements.chatLog) return;
+  const visible = Boolean(state.playerId) && game.phase !== "lobby";
+  elements.chatPanel.classList.toggle("hidden", !visible);
+  if (!visible) return;
+  const log = elements.chatLog;
+  const previousCount = state.lastChatLength || 0;
+  const atBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 40;
+  log.innerHTML = "";
+  game.chat.forEach((message) => {
+    const entry = document.createElement("div");
+    entry.className = "chat-message";
+    const name = document.createElement("strong");
+    name.textContent = message.playerName || "Игрок";
+    const body = document.createElement("span");
+    const payload = message.text ?? message.message ?? "";
+    body.textContent = `: ${payload}`;
+    entry.appendChild(name);
+    entry.appendChild(body);
+    log.appendChild(entry);
+  });
+  if (atBottom || game.chat.length > previousCount) {
+    log.scrollTop = log.scrollHeight;
+  }
+  state.lastChatLength = game.chat.length;
+}
